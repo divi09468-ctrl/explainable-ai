@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XAI Intrusion Detection</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        header {
+            background: #0f172a;
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+
+        header p {
+            color: #cbd5e1;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 12px #0000000d;
+        }
+
+        label {
+            display: block;
+            margin: 14px 0 7px;
+            font-weight: bold;
+        }
+
+        input, button {
+            padding: 11px;
+            width: 100%;
+            border-radius: 7px;
+            border: 1px solid #cbd5e1;
+            font-size: 15px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            margin-top: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .metric {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 21px;
+        }
+
+        .feature {
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+            overflow-wrap: anywhere;
+        }
+
+        .error {
+            color: #b91c1c;
+            background: #fef2f2;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .notice {
+            color: #854d0e;
+            background: #fefce8;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
+        }
+        
+.blocklist-section {
+    margin-top: 24px;
+    padding: 22px;
+    background: #ffffff;
+    border: 1px solid #dbe3ef;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.blocklist-section h2 {
+    color: #1e3a8a;
+    margin-top: 0;
+}
+
+.notice {
+    padding: 12px;
+    border-left: 4px solid #f59e0b;
+    background: #fffbeb;
+    color: #92400e;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.blocklist-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
+
+.blocklist-section th,
+.blocklist-section td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: bold;
+}
+.severity-badge {
+    display: inline-block;
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+.severity-low {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.severity-medium {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.severity-high {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+}
+.threat-alert {
+    margin: 20px 0;
+    padding: 18px 20px;
+    border-radius: 12px;
+    border-left: 6px solid;
+}
+
+.threat-alert strong {
+    display: block;
+    font-size: 18px;
+    margin-bottom: 8px;
+}
+
+.threat-alert p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.alert-danger {
+    background: #fef2f2;
+    border-color: #dc2626;
+    color: #991b1b;
+}
+
+.alert-safe {
+    background: #f0fdf4;
+    border-color: #16a34a;
+    color: #166534;
+}
+.probability-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.metric-label {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.probability-value {
+    font-size: 28px;
+    color: #1e3a8a;
+}
+
+.probability-bar {
+    width: 100%;
+    height: 10px;
+    background: #e2e8f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.probability-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #60a5fa, #2563eb);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+}
+
+.probability-metric small {
+    color: #64748b;
+    font-size: 12px;
+}
+.response-card {
+    margin: 14px 0 24px;
+    padding: 18px;
+    border-radius: 12px;
+    border-left: 6px solid;
+}
+
+.response-card strong {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.response-card p {
+    line-height: 1.5;
+}
+
+.response-low {
+    background: #f0fdf4;
+    border-color: #16a34a;
+    color: #166534;
+}
+
+.response-medium {
+    background: #fffbeb;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.response-high {
+    background: #fef2f2;
+    border-color: #dc2626;
+    color: #991b1b;
+}
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    background: #1e3a8a;
+    border-radius: 12px;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.navbar a:hover {
+    background: #2563eb;
+}
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+    <a href="/">🏠 Main Dashboard</a>
+    <a href="/evaluation">📊 Model Evaluation</a>
+</nav>
+<header>
+    <h1>XAI Intrusion Detection System</h1>
+    <p>Detect · Explain · Assess Risk · Respond</p>
+</header>
+
+<main>
+    <section class="card">
+        <h2>Analyze a Network Record</h2>
+        <p>Select a record from the NSL-KDD test dataset.</p>
+
+        <form method="POST" action="/">
+            <label for="row_number">Test record number</label>
+            <input id="row_number" name="row_number"
+                   type="number" min="0"
+                   max="{{ total_records - 1 }}"
+                   value="0" required>
+
+            <label for="asset_criticality">
+                Asset criticality (0 to 1)
+            </label>
+            <input id="asset_criticality"
+                   name="asset_criticality"
+                   type="number" min="0" max="1"
+                   step="0.1" value="0.5" required>
+
+            <button type="submit">Analyze Record</button>
+        </form>
+
+        <p>Available test records: {{ total_records }}</p>
+    </section>
+
+    {% if error %}
+    <section class="card error">
+        <strong>Could not analyze the record:</strong>
+        {{ error }}
+    </section>
+    {% endif %}
+
+    {% if result %}
+    <section class="card">
+        <h2>Detection Results</h2>
+
+        <div class="grid">
+            <div class="metric">
+                Prediction
+                <strong>{{ result.prediction }}</strong>
+            </div>
+
+            <div class="metric probability-metric">
+    <div class="metric-label">Attack Probability</div>
+
+    <strong class="probability-value">
+        {{ result.attack_probability }}%
+    </strong>
+
+    <div class="probability-bar">
+        <div class="probability-fill"
+             style="width: {{ result.attack_probability }}%;">
+        </div>
+    </div>
+
+    <small>Estimated probability of an attack</small>
+</div>
+            <!-- Automatic Threat Alert -->
+{% if result %}
+    {% if result.prediction == "Attack" %}
+        <div class="threat-alert alert-danger">
+            <strong>⚠️ ATTACK DETECTED</strong>
+            <p>
+                The model has identified this record as a potential
+                network intrusion. Review the risk score and recommended
+                response.
+            </p>
+        </div>
+    {% else %}
+        <div class="threat-alert alert-safe">
+            <strong>✓ NORMAL TRAFFIC</strong>
+            <p>
+                The model classified this record as normal.
+                Continue monitoring network activity.
+            </p>
+        </div>
+    {% endif %}
+{% endif %}
+
+<!-- Keep your existing Risk score and Severity code below -->
+
+            <div class="metric">
+                Risk score
+                <strong>{{ result.risk_score }}</strong>
+            </div>
+
+            <div class="metric">
+                 Severity
+                <strong>
+                    <span class="severity-badge severity-{{ result.severity | lower }}">
+                       {{ result.severity | upper }}
+                    </span>
+                </strong>
+            </div>
+        </div>
+
+        <h3>Recommended Response</h3>
+
+<div class="response-card response-{{ result.severity | lower }}">
+    {% if result.severity | lower == "high" %}
+        <strong>⚠️ HIGH RISK — Immediate Review Recommended</strong>
+        <p>{{ result.recommended_action }}</p>
+        <p>Prioritize investigation and escalate to a security analyst.</p>
+
+    {% elif result.severity | lower == "medium" %}
+        <strong>⚠️ MEDIUM RISK — Investigation Recommended</strong>
+        <p>{{ result.recommended_action }}</p>
+        <p>Review suspicious activity and inspect contributing features.</p>
+
+    {% else %}
+        <strong>✓ LOW RISK — Continue Monitoring</strong>
+        <p>{{ result.recommended_action }}</p>
+        <p>Monitor traffic and record the event for future analysis.</p>
+    {% endif %}
+</div>
+
+        <h3>Explainable AI: Top contributing features</h3>
+        <p>
+            SHAP contribution values show how features influence
+            the model's Attack output.
+        </p>
+
+        {% for item in result.top_features %}
+        <div class="feature">
+            <strong>{{ item.feature }}</strong><br>
+            Contribution: {{ item.contribution }}
+        </div>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <section class="card">
+        <h2>Simulated Threat Response</h2>
+        <p>
+            Demonstration only: this adds an IP address to an
+            application-level in-memory list. It does not block
+            network traffic or change your firewall.
+        </p>
+        
+<section class="blocklist-section">
+    <h2>Simulated Blocklist</h2>
+
+    <p class="notice">
+        Demo only: these addresses are stored in this
+        application's memory. No real network traffic is blocked.
+    </p>
+
+    {% if blocklist %}
+        <table>
+            <thead>
+                <tr>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ip in blocklist %}
+                <tr>
+                    <td>{{ ip }}</td>
+                    <td><span class="status-badge">Simulated</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No IP addresses have been added yet.</p>
+    {% endif %}
+</section>
+
+
+        <form method="POST" action="/simulate-block">
+            <label for="ip_address">Demo IP address</label>
+            <input id="ip_address" name="ip_address"
+                   type="text" value="192.0.2.10" required>
+
+            <button type="submit">Simulate Block</button>
+        </form>
+
+        {% if block_message %}
+        <p class="notice">{{ block_message }}</p>
+        {% endif %}
+    </section>
+</main>
+
+<footer>
+    Academic prototype · Results depend on the trained model and dataset
+</footer>
+</body>
+</html>

@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Evaluation | XAI IDS</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+            margin: 0;
+            padding: 25px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            color: #1d4ed8;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #00000010;
+        }
+
+        .value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            margin: 18px 0;
+        }
+
+        th, td {
+            padding: 15px;
+            border: 1px solid #cbd5e1;
+            text-align: center;
+        }
+
+        th {
+            background: #dbeafe;
+        }
+
+        a {
+            display: inline-block;
+            margin: 15px 0;
+            color: #1d4ed8;
+        }
+        .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
+    background: #1e3a8a;
+    border-radius: 12px;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 12px;
+    border-radius: 6px;
+}
+
+.navbar a:hover {
+    background: #2563eb;
+}
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+    <a href="/">🏠 Main Dashboard</a>
+    <a href="/evaluation">📊 Model Evaluation</a>
+</nav>
+<div class="container">
+    <h1>Model Evaluation Dashboard</h1>
+    <p>Explainable AI-Based Network Intrusion Detection System</p>
+
+    <div class="cards">
+        <div class="card">
+            <p>Accuracy</p>
+            <div class="value">{{ metrics.accuracy }}%</div>
+        </div>
+
+        <div class="card">
+            <p>Attack Precision</p>
+            <div class="value">{{ metrics.precision }}%</div>
+        </div>
+
+        <div class="card">
+            <p>Attack Recall</p>
+            <div class="value">{{ metrics.recall }}%</div>
+        </div>
+
+        <div class="card">
+            <p>Attack F1-score</p>
+            <div class="value">{{ metrics.f1 }}%</div>
+        </div>
+    </div>
+
+    <h2>Confusion Matrix</h2>
+    <p>Rows represent actual classes; columns represent predicted classes.</p>
+
+    <table>
+        <tr>
+            <th>Actual / Predicted</th>
+            <th>Normal</th>
+            <th>Attack</th>
+        </tr>
+        <tr>
+            <th>Normal</th>
+            <td>{{ cm[0][0] }}</td>
+            <td>{{ cm[0][1] }}</td>
+        </tr>
+        <tr>
+            <th>Attack</th>
+            <td>{{ cm[1][0] }}</td>
+            <td>{{ cm[1][1] }}</td>
+        </tr>
+    </table>
+    
+<!-- Charts section -->
+<h2>Visual Model Performance</h2>
+
+<div class="card" style="margin-bottom: 20px;">
+    <h3>1. Model Performance Metrics</h3>
+    <canvas id="performanceChart"></canvas>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+    <h3>2. Confusion Matrix Chart</h3>
+    <canvas id="confusionChart"></canvas>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+    <h3>3. Attack Detection Summary</h3>
+    <canvas id="detectionChart"></canvas>
+</div>
+
+<!-- Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Chart 1: Model performance metrics
+    new Chart(document.getElementById("performanceChart"), {
+        type: "bar",
+        data: {
+            labels: [
+                "Accuracy",
+                "Attack Precision",
+                "Attack Recall",
+                "Attack F1-score"
+            ],
+            datasets: [{
+                label: "Percentage (%)",
+                data: [
+                    {{ metrics.accuracy | tojson }},
+                    {{ metrics.precision | tojson }},
+                    {{ metrics.recall | tojson }},
+                    {{ metrics.f1 | tojson }}
+                ],
+                backgroundColor: [
+                    "#2563eb",
+                    "#16a34a",
+                    "#f59e0b",
+                    "#7c3aed"
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: "Percentage (%)"
+                    }
+                }
+            }
+        }
+    });
+
+    // Chart 2: Confusion matrix
+    new Chart(document.getElementById("confusionChart"), {
+        type: "bar",
+        data: {
+            labels: ["Actual Normal", "Actual Attack"],
+            datasets: [
+                {
+                    label: "Predicted Normal",
+                    data: [
+                        {{ cm[0][0] | tojson }},
+                        {{ cm[1][0] | tojson }}
+                    ],
+                    backgroundColor: "#2563eb"
+                },
+                {
+                    label: "Predicted Attack",
+                    data: [
+                        {{ cm[0][1] | tojson }},
+                        {{ cm[1][1] | tojson }}
+                    ],
+                    backgroundColor: "#f97316"
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: "Number of Records"
+                    }
+                }
+            }
+        }
+    });
+
+    // Chart 3: Attack detection summary
+    new Chart(document.getElementById("detectionChart"), {
+        type: "bar",
+        data: {
+            labels: [
+                "Detected Attacks",
+                "Missed Attacks",
+                "False Alarms"
+            ],
+            datasets: [{
+                label: "Number of Records",
+                data: [
+                    {{ cm[1][1] | tojson }},
+                    {{ cm[1][0] | tojson }},
+                    {{ cm[0][1] | tojson }}
+                ],
+                backgroundColor: [
+                    "#16a34a",
+                    "#dc2626",
+                    "#f59e0b"
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: "Number of Records"
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+        
+    <a href="/">← Back to Intrusion Detection Dashboard</a>
+</div>
+</body>
+</html>
